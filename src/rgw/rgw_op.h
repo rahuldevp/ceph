@@ -51,6 +51,7 @@
 #include "rgw_object_lock.h"
 #include "cls/rgw/cls_rgw_client.h"
 #include "rgw_public_access.h"
+#include "rgw_bucket_encryption.h"
 
 #include "services/svc_sys_obj.h"
 #include "services/svc_tier_rados.h"
@@ -953,6 +954,58 @@ public:
   const char* name() const override { return "get_bucket_location"; }
   RGWOpType get_type() override { return RGW_OP_GET_BUCKET_LOCATION; }
   uint32_t op_mask() override { return RGW_OP_TYPE_READ; }
+};
+
+class RGWGetBucketEncryption : public RGWOp {
+protected:
+  bool encryption_enabled{false};
+public:
+  RGWGetBucketEncryption() {}
+
+  int verify_permission(optional_yield y) override;
+  void pre_exec() override;
+  void execute(optional_yield y) override;
+
+  void send_response() override = 0;
+  const char* name() const override { return "get_bucket_encryption"; }
+  RGWOpType get_type() override { return RGW_OP_GET_BUCKET_ENCRYPTION; }
+  uint32_t op_mask() override { return RGW_OP_TYPE_READ; }
+};
+
+class RGWPutBucketEncryption : public RGWOp {
+protected:
+  int encryption_status;
+  RGWBucketEncryptionConfig bucket_encryption_conf;
+  bufferlist in_data;
+public:
+  RGWPutBucketEncryption() = default;
+  ~RGWPutBucketEncryption() {}
+
+  int verify_permission(optional_yield y) override;
+  void pre_exec() override;
+  void execute(optional_yield y) override;
+
+  virtual int get_params(optional_yield y) { return 0; }
+
+  void send_response() override = 0;
+  const char* name() const override { return "put_bucket_encryption"; }
+  RGWOpType get_type() override { return RGW_OP_PUT_BUCKET_ENCRYPTION; }
+  uint32_t op_mask() override { return RGW_OP_TYPE_WRITE; }
+};
+
+class RGWDeleteBucketEncryption : public RGWOp {
+protected:
+
+public:
+  RGWDeleteBucketEncryption() {}
+
+  int verify_permission(optional_yield y) override;
+  void execute(optional_yield y) override;
+
+  void send_response() override = 0;
+  const char* name() const override { return "delete_bucket_encryption"; }
+  RGWOpType get_type() override { return RGW_OP_DELETE_BUCKET_ENCRYPTION; }
+  uint32_t op_mask() override { return RGW_OP_TYPE_WRITE; }
 };
 
 class RGWGetBucketVersioning : public RGWOp {

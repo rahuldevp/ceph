@@ -25,6 +25,7 @@
 #include "rgw_acl.h"
 #include "rgw_bucket_layout.h"
 #include "rgw_cors.h"
+#include "rgw_bucket_encryption.h"
 #include "rgw_iam_policy.h"
 #include "rgw_quota.h"
 #include "rgw_string.h"
@@ -68,6 +69,7 @@ using ceph::crypto::MD5;
 #define RGW_ATTR_ACL		RGW_ATTR_PREFIX "acl"
 #define RGW_ATTR_LC            RGW_ATTR_PREFIX "lc"
 #define RGW_ATTR_CORS		RGW_ATTR_PREFIX "cors"
+#define RGW_ATTR_ENCRYPTION		RGW_ATTR_PREFIX "encryption"
 #define RGW_ATTR_ETAG    	RGW_ATTR_PREFIX "etag"
 #define RGW_ATTR_BUCKETS	RGW_ATTR_PREFIX "buckets"
 #define RGW_ATTR_META_PREFIX	RGW_ATTR_PREFIX RGW_AMZ_META_PREFIX
@@ -230,6 +232,7 @@ using ceph::crypto::MD5;
 #define ERR_NO_SUCH_CORS_CONFIGURATION 2045
 #define ERR_NO_SUCH_OBJECT_LOCK_CONFIGURATION  2046
 #define ERR_INVALID_RETENTION_PERIOD 2047
+#define ERR_NO_SUCH_BUCKET_ENCRYPTION_CONFIGURATION 2048
 #define ERR_USER_SUSPENDED       2100
 #define ERR_INTERNAL_ERROR       2200
 #define ERR_NOT_IMPLEMENTED      2201
@@ -1005,6 +1008,7 @@ enum RGWBucketFlags {
   BUCKET_DATASYNC_DISABLED = 0X8,
   BUCKET_MFA_ENABLED = 0X10,
   BUCKET_OBJ_LOCK_ENABLED = 0X20,
+  BUCKET_SSE_ENABLED = 0X40,
 };
 
 class RGWSI_Zone;
@@ -1019,6 +1023,7 @@ struct RGWBucketInfo {
   bool has_instance_obj{false};
   RGWObjVersionTracker objv_tracker; /* we don't need to serialize this, for runtime tracking */
   RGWQuotaInfo quota;
+  RGWBucketEncryptionConfig bucket_encryption_conf;
 
   // layout of bucket index objects
   rgw::BucketLayout layout;
@@ -1063,6 +1068,7 @@ struct RGWBucketInfo {
   bool mfa_enabled() const { return (versioning_status() & BUCKET_MFA_ENABLED) != 0; }
   bool datasync_flag_enabled() const { return (flags & BUCKET_DATASYNC_DISABLED) == 0; }
   bool obj_lock_enabled() const { return (flags & BUCKET_OBJ_LOCK_ENABLED) != 0; }
+  bool sse_enabled() const { return (flags & BUCKET_SSE_ENABLED) != 0; }
 
   bool has_swift_versioning() const {
     /* A bucket may be versioned through one mechanism only. */

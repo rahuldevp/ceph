@@ -2504,6 +2504,116 @@ void RGWStatAccount::execute(optional_yield y)
   } while (buckets.is_truncated());
 }
 
+void RGWGetBucketEncryption::pre_exec()
+{
+  ldpp_dout(this, 0) << "RahulDevParashar-RGWGetBucketEncryption::pre_exec-InsideMethod" << dendl;
+  rgw_bucket_object_pre_exec(s);
+}
+
+int RGWGetBucketEncryption::verify_permission(optional_yield y)
+{
+  ldpp_dout(this, 0) << "RahulDevParashar-RGWGetBucketEncryption::verify_permission-InsideMethod" << dendl;
+  return verify_bucket_owner_or_policy(s, rgw::IAM::s3GetBucketEncryption);
+}
+
+void RGWGetBucketEncryption::execute(optional_yield y)
+{
+  ldpp_dout(this, 0) << "RahulDevParashar-RGWGetBucketEncryption::execute-InsideMethod" << dendl;
+}
+
+void RGWPutBucketEncryption::pre_exec()
+{
+  ldpp_dout(this, 0) << "RahulDevParashar-RGWPutBucketEncryption::pre_exec-InsideMethod" << dendl;
+  rgw_bucket_object_pre_exec(s);
+}
+
+int RGWPutBucketEncryption::verify_permission(optional_yield y)
+{
+  ldpp_dout(this, 0) << "RahulDevParashar-RGWPutBucketEncryption::verify_permission-InsideMethod" << dendl;
+  return verify_bucket_owner_or_policy(s, rgw::IAM::s3PutBucketEncryption);
+}
+
+void RGWPutBucketEncryption::execute(optional_yield y)
+{
+  ldpp_dout(this, 0) << "RahulDevParashar-RGWPutBucketEncryption::execute-InsideMethod" << dendl;
+  RGWXMLDecoder::XMLParser parser;
+  if (!parser.init()) {
+    ldpp_dout(this, 0) << "ERROR: failed to initialize parser" << dendl;
+    op_ret = -EINVAL;
+    return;
+  }
+  op_ret = get_params(y);
+  if (op_ret < 0) {
+    return;
+  }
+  // if (!parser.parse(data.c_str(), data.length(), 1)) {
+  //   ldpp_dout(this, 0) << "ERROR: malformed XML" << dendl;
+  //   op_ret = -ERR_MALFORMED_XML;
+  //   return;
+  // }
+
+  // try {
+  //   RGWXMLDecoder::decode_xml("ServerSideEncryptionConfiguration", bucket_encryption_conf, &parser, true);
+  // } catch (RGWXMLDecoder::err& err) {
+  //   ldpp_dout(this, 5) << "unexpected xml:" << err << dendl;
+  //   op_ret = -ERR_MALFORMED_XML;
+  //   return;
+  // }
+
+  // op_ret = store->forward_request_to_master(this, s->user.get(), nullptr, in_data, nullptr, s->info, y);
+  // if (op_ret < 0) {
+  //   ldpp_dout(this, 0) << "forward_request_to_master returned ret=" << op_ret << dendl;
+  //   return;
+  // }
+
+  // op_ret = retry_raced_bucket_write(this, s->bucket.get(), [this] {
+  //   s->bucket->get_info().bucket_encryption_conf = bucket_encryption_conf;
+  //   op_ret = s->bucket->put_instance_info(this, false, real_time());
+  //   return op_ret;
+  // });
+  return;
+}
+
+int RGWDeleteBucketEncryption::verify_permission(optional_yield y)
+{
+  // No separate delete permission
+  ldpp_dout(this, 0) << "RahulDevParashar-RGWDeleteBucketEncryption::verify_permission-InsideMethod" << dendl;
+  return verify_bucket_owner_or_policy(s, rgw::IAM::s3PutBucketEncryption);
+}
+
+void RGWDeleteBucketEncryption::execute(optional_yield y)
+{
+  ldpp_dout(this, 0) << "RahulDevParashar-RGWDeleteBucketEncryption::execute-InsideMethod" << dendl;
+  /* TODO after PUT and GET bucket encryption implementation */
+  // bufferlist data;
+  // op_ret = store->forward_request_to_master(this, s->user.get(), nullptr, data, nullptr, s->info, y);
+  // if (op_ret < 0) {
+  //   ldpp_dout(this, 0) << "forward_request_to_master returned ret=" << op_ret << dendl;
+  //   return;
+  // }
+
+  // op_ret = retry_raced_bucket_write(this, s->bucket.get(), [this] {
+  //     op_ret = read_bucket_cors();
+  //     if (op_ret < 0)
+	// return op_ret;
+
+  //     if (!cors_exist) {
+	// ldpp_dout(this, 2) << "No CORS configuration set yet for this bucket" << dendl;
+	// op_ret = -ENOENT;
+	// return op_ret;
+  //     }
+
+  //     rgw::sal::Attrs attrs(s->bucket_attrs);
+  //     attrs.erase(RGW_ATTR_CORS);
+  //     op_ret = s->bucket->set_instance_attrs(this, attrs, s->yield);
+  //     if (op_ret < 0) {
+	// ldpp_dout(this, 0) << "RGWLC::RGWDeleteCORS() failed to set attrs on bucket=" << s->bucket->get_name()
+	// 		 << " returned err=" << op_ret << dendl;
+  //     }
+  //     return op_ret;
+  //   });
+}
+
 int RGWGetBucketVersioning::verify_permission(optional_yield y)
 {
   return verify_bucket_owner_or_policy(s, rgw::IAM::s3GetBucketVersioning);

@@ -387,6 +387,31 @@ public:
  void send_response() override;
 };
 
+class RGWGetBucketEncryption_ObjStore_S3 : public RGWGetBucketEncryption_ObjStore {
+public:
+  RGWGetBucketEncryption_ObjStore_S3() {}
+  ~RGWGetBucketEncryption_ObjStore_S3() override {}
+
+  void send_response() override;
+};
+
+class RGWPutBucketEncryption_ObjStore_S3 : public RGWPutBucketEncryption_ObjStore {
+public:
+  RGWPutBucketEncryption_ObjStore_S3() {}
+  ~RGWPutBucketEncryption_ObjStore_S3() override {}
+
+  int get_params(optional_yield y) override;
+  void send_response() override;
+};
+
+class RGWDeleteBucketEncryption_ObjStore_S3 : public RGWDeleteBucketEncryption_ObjStore {
+public:
+  RGWDeleteBucketEncryption_ObjStore_S3() {}
+  ~RGWDeleteBucketEncryption_ObjStore_S3() override {}
+
+  void send_response() override;
+};
+
 class RGWGetCORS_ObjStore_S3 : public RGWGetCORS_ObjStore {
 public:
   RGWGetCORS_ObjStore_S3() {}
@@ -400,7 +425,6 @@ public:
   RGWPutCORS_ObjStore_S3() {}
   ~RGWPutCORS_ObjStore_S3() override {}
 
-  int get_params(optional_yield y) override;
   void send_response() override;
 };
 
@@ -699,6 +723,9 @@ protected:
   }
   bool is_block_public_access_op() {
     return s->info.args.exists("publicAccessBlock");
+  }
+  bool is_bucket_encryption_op() {
+    return s->info.args.exists("encryption");
   }
 
   RGWOp *get_obj_op(bool get_data) const;
