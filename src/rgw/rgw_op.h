@@ -976,7 +976,7 @@ class RGWPutBucketEncryption : public RGWOp {
 protected:
   int encryption_status;
   RGWBucketEncryptionConfig bucket_encryption_conf;
-  bufferlist in_data;
+  bufferlist data;
 public:
   RGWPutBucketEncryption() = default;
   ~RGWPutBucketEncryption() {}
@@ -984,9 +984,7 @@ public:
   int verify_permission(optional_yield y) override;
   void pre_exec() override;
   void execute(optional_yield y) override;
-
-  virtual int get_params(optional_yield y) { return 0; }
-
+  int get_params(optional_yield y);
   void send_response() override = 0;
   const char* name() const override { return "put_bucket_encryption"; }
   RGWOpType get_type() override { return RGW_OP_PUT_BUCKET_ENCRYPTION; }

@@ -3429,6 +3429,11 @@ void RGWGetBucketEncryption_ObjStore_S3::send_response()
   if (op_ret) {
     return;
   }
+  ldpp_dout(this, 0) << "RahulDevParashar-RGWGetBucketEncryption_ObjStore_S3::send_response" << dendl;
+  ldpp_dout(this, 0) << "RahulDevParashar-Conf-3" << s->bucket->get_info().bucket_encryption_conf.get_sseAlgorithm() << dendl;
+  ldpp_dout(this, 0) << "RahulDevParashar-Conf-4" << s->bucket->get_info().bucket_encryption_conf.get_kmsMasterKeyID() << dendl;
+  ldpp_dout(this, 0) << "RahulDevParashar-Conf-1" << s->bucket->get_info().bucket_encryption_conf.has_rule() << dendl;
+  ldpp_dout(this, 0) << "RahulDevParashar-Conf-2" << s->bucket->get_info().bucket_encryption_conf.get_bucketKeyEnabled() << dendl;
   encode_xml("ServerSideEncryptionConfiguration", s->bucket->get_info().bucket_encryption_conf, s->formatter);
   rgw_flush_formatter_and_reset(s, s->formatter);
 }

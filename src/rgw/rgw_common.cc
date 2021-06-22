@@ -2109,6 +2109,7 @@ void RGWBucketInfo::encode(bufferlist& bl) const {
   }
   encode(layout, bl);
   encode(owner.ns, bl);
+  encode(bucket_encryption_conf, bl);
   ENCODE_FINISH(bl);
 }
 
@@ -2189,6 +2190,9 @@ void RGWBucketInfo::decode(bufferlist::const_iterator& bl) {
   }
   if (struct_v >= 23) {
     decode(owner.ns, bl);
+  }
+  if (struct_v >= 40) {
+    decode(bucket_encryption_conf, bl);
   }
   DECODE_FINISH(bl);
 }
