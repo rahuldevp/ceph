@@ -2504,12 +2504,6 @@ void RGWStatAccount::execute(optional_yield y)
   } while (buckets.is_truncated());
 }
 
-void RGWGetBucketEncryption::pre_exec()
-{
-  ldpp_dout(this, 0) << "RahulDevParashar-RGWGetBucketEncryption::pre_exec-InsideMethod" << dendl;
-  rgw_bucket_object_pre_exec(s);
-}
-
 int RGWGetBucketEncryption::verify_permission(optional_yield y)
 {
   ldpp_dout(this, 0) << "RahulDevParashar-RGWGetBucketEncryption::verify_permission-InsideMethod" << dendl;
@@ -2519,12 +2513,6 @@ int RGWGetBucketEncryption::verify_permission(optional_yield y)
 void RGWGetBucketEncryption::execute(optional_yield y)
 {
   ldpp_dout(this, 0) << "RahulDevParashar-RGWGetBucketEncryption::execute-InsideMethod" << dendl;
-}
-
-void RGWPutBucketEncryption::pre_exec()
-{
-  ldpp_dout(this, 0) << "RahulDevParashar-RGWPutBucketEncryption::pre_exec-InsideMethod" << dendl;
-  rgw_bucket_object_pre_exec(s);
 }
 
 int RGWPutBucketEncryption::get_params(optional_yield y)
@@ -2571,19 +2559,24 @@ void RGWPutBucketEncryption::execute(optional_yield y)
 
   op_ret = store->forward_request_to_master(this, s->user.get(), nullptr, data, nullptr, s->info, y);
   if (op_ret < 0) {
-    ldpp_dout(this, 0) << "forward_request_to_master returned ret=" << op_ret << dendl;
+    ldpp_dout(this, 20) << "forward_request_to_master returned ret=" << op_ret << dendl;
     return;
   }
 
   op_ret = retry_raced_bucket_write(this, s->bucket.get(), [this] {
     s->bucket->get_info().bucket_encryption_conf = bucket_encryption_conf;
     op_ret = s->bucket->put_instance_info(this, false, real_time());
+    ldpp_dout(this, 0) << "RahulDevParashar-ReturnCodeAfterPutInstanceInfo-" << op_ret << dendl;
     return op_ret;
   });
-  ldpp_dout(this, 0) << "RahulDevParashar-VerifySavedData1-" << s->bucket->get_info().bucket_encryption_conf.get_sseAlgorithm() << dendl;
-  ldpp_dout(this, 0) << "RahulDevParashar-VerifySavedData1-" << s->bucket->get_info().bucket_encryption_conf.get_kmsMasterKeyID() << dendl;
-  ldpp_dout(this, 0) << "RahulDevParashar-VerifySavedData1-" << s->bucket->get_info().bucket_encryption_conf.has_rule() << dendl;
-  ldpp_dout(this, 0) << "RahulDevParashar-VerifySavedData1-" << s->bucket->get_info().bucket_encryption_conf.get_bucketKeyEnabled() << dendl;
+  ldpp_dout(this, 0) << "RahulDevParashar-VerifySavedData1-" 
+    << s->bucket->get_info().bucket_encryption_conf.get_sseAlgorithm() << dendl; // AES256
+  ldpp_dout(this, 0) << "RahulDevParashar-VerifySavedData1-" 
+    << s->bucket->get_info().bucket_encryption_conf.get_kmsMasterKeyID() << dendl; // test-key-rahul
+  ldpp_dout(this, 0) << "RahulDevParashar-VerifySavedData1-" 
+    << s->bucket->get_info().bucket_encryption_conf.has_rule() << dendl; // 1
+  ldpp_dout(this, 0) << "RahulDevParashar-VerifySavedData1-" 
+    << s->bucket->get_info().bucket_encryption_conf.get_bucketKeyEnabled() << dendl; // 0
   return;
 }
 
@@ -2597,34 +2590,6 @@ int RGWDeleteBucketEncryption::verify_permission(optional_yield y)
 void RGWDeleteBucketEncryption::execute(optional_yield y)
 {
   ldpp_dout(this, 0) << "RahulDevParashar-RGWDeleteBucketEncryption::execute-InsideMethod" << dendl;
-  /* TODO after PUT and GET bucket encryption implementation */
-  // bufferlist data;
-  // op_ret = store->forward_request_to_master(this, s->user.get(), nullptr, data, nullptr, s->info, y);
-  // if (op_ret < 0) {
-  //   ldpp_dout(this, 0) << "forward_request_to_master returned ret=" << op_ret << dendl;
-  //   return;
-  // }
-
-  // op_ret = retry_raced_bucket_write(this, s->bucket.get(), [this] {
-  //     op_ret = read_bucket_cors();
-  //     if (op_ret < 0)
-	// return op_ret;
-
-  //     if (!cors_exist) {
-	// ldpp_dout(this, 2) << "No CORS configuration set yet for this bucket" << dendl;
-	// op_ret = -ENOENT;
-	// return op_ret;
-  //     }
-
-  //     rgw::sal::Attrs attrs(s->bucket_attrs);
-  //     attrs.erase(RGW_ATTR_CORS);
-  //     op_ret = s->bucket->set_instance_attrs(this, attrs, s->yield);
-  //     if (op_ret < 0) {
-	// ldpp_dout(this, 0) << "RGWLC::RGWDeleteCORS() failed to set attrs on bucket=" << s->bucket->get_name()
-	// 		 << " returned err=" << op_ret << dendl;
-  //     }
-  //     return op_ret;
-  //   });
 }
 
 int RGWGetBucketVersioning::verify_permission(optional_yield y)

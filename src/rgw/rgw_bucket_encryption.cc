@@ -4,44 +4,44 @@
 #include "rgw_bucket_encryption.h"
 
 void ApplyServerSideEncryptionByDefault::decode_xml(XMLObj *obj) {
-  bool kmsMasterKey = RGWXMLDecoder::decode_xml("KMSMasterKeyID", kmsMasterKeyID, obj, false);
-  bool sse_algo = RGWXMLDecoder::decode_xml("SSEAlgorithm", sseAlgorithm, obj, false);
-  if (sseAlgorithm.compare("AES256") != 0) {
-    throw RGWXMLDecoder::err("see algorithm value can only be AES256");
+  RGWXMLDecoder::decode_xml("KMSMasterKeyID", kmsMasterKeyID, obj, false);
+  if(kmsMasterKeyID.compare("") != 0) {
+    throw RGWXMLDecoder::err("implementation for KMS is not supported yet");
   }
-  if ((kmsMasterKey && sse_algo) || (!kmsMasterKey && !sse_algo)) {
-    throw RGWXMLDecoder::err("either KMSMasterKey or SSEAlgorithm must be specified, but not both");
+  // TODO: need to set proper value for kmsMasterKeyID
+  kmsMasterKeyID = "test-key-rahul";
+  RGWXMLDecoder::decode_xml("SSEAlgorithm", sseAlgorithm, obj, false);
+  if (sseAlgorithm.compare("AES256") != 0) {
+    throw RGWXMLDecoder::err("sse algorithm value can only be AES256");
   }
 }
 
 void ApplyServerSideEncryptionByDefault::dump_xml(Formatter *f) const {
-  if (kmsMasterKeyID != "") {
-    encode_xml("KMSMasterKeyID", kmsMasterKeyID, f);
-  } else {
-    encode_xml("SSEAlgorithm", sseAlgorithm, f);
-  }
+  // encode_xml("KMSMasterKeyID", kmsMasterKeyID, f);
+  encode_xml("SSEAlgorithm", sseAlgorithm, f);
 }
 
 void ServerSideEncryptionConfiguration::decode_xml(XMLObj *obj) {
   RGWXMLDecoder::decode_xml("ApplyServerSideEncryptionByDefault", applyServerSideEncryptionByDefault, obj, true);
+  // bucketKeyEnabled field is added for completion when KMS is implemented.
   RGWXMLDecoder::decode_xml("BucketKeyEnabled", bucketKeyEnabled, obj, false);
 }
 
 void ServerSideEncryptionConfiguration::dump_xml(Formatter *f) const {
   encode_xml("ApplyServerSideEncryptionByDefault", applyServerSideEncryptionByDefault, f);
-  encode_xml("BucketKeyEnabled", bucketKeyEnabled, f);
+  // encode_xml("BucketKeyEnabled", bucketKeyEnabled, f);
 }
 
 void RGWBucketEncryptionConfig::decode_xml(XMLObj *obj) {
   rule_exist = RGWXMLDecoder::decode_xml("Rule", rule, obj);
-  sse_enabled = false;
-  if(rule.get_sseAlgorithm().compare("") != 0) {
+  if(!rule_exist) {
+    throw RGWXMLDecoder::err("rule must be present in XML");
+  }
+  if(rule.get_sseAlgorithm().compare("AES256") == 0) {
     sse_enabled = true;
   }
 }
 
 void RGWBucketEncryptionConfig::dump_xml(Formatter *f) const {
-  if (rule_exist) {
-    encode_xml("Rule", rule, f);
-  }
+  encode_xml("Rule", rule, f);
 }
