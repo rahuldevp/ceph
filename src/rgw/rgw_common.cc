@@ -2075,7 +2075,7 @@ RGWBucketInfo::~RGWBucketInfo()
 }
 
 void RGWBucketInfo::encode(bufferlist& bl) const {
-  ENCODE_START(23, 4, bl);
+  ENCODE_START(24, 4, bl);
   encode(bucket, bl);
   encode(owner.id, bl);
   encode(flags, bl);
@@ -2114,7 +2114,7 @@ void RGWBucketInfo::encode(bufferlist& bl) const {
 }
 
 void RGWBucketInfo::decode(bufferlist::const_iterator& bl) {
-  DECODE_START_LEGACY_COMPAT_LEN_32(23, 4, 4, bl);
+  DECODE_START_LEGACY_COMPAT_LEN_32(24, 4, 4, bl);
   decode(bucket, bl);
   if (struct_v >= 2) {
     string s;
@@ -2191,7 +2191,7 @@ void RGWBucketInfo::decode(bufferlist::const_iterator& bl) {
   if (struct_v >= 23) {
     decode(owner.ns, bl);
   }
-  if (struct_v >= 40) {
+  if (struct_v >= 24) {
     decode(bucket_encryption_conf, bl);
   }
   DECODE_FINISH(bl);

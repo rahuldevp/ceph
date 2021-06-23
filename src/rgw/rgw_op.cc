@@ -2504,6 +2504,12 @@ void RGWStatAccount::execute(optional_yield y)
   } while (buckets.is_truncated());
 }
 
+void RGWGetBucketEncryption::pre_exec()
+{
+  ldpp_dout(this, 0) << "RahulDevParashar-RGWGetBucketEncryption::pre_exec-InsideMethod" << dendl;
+  rgw_bucket_object_pre_exec(s);
+}
+
 int RGWGetBucketEncryption::verify_permission(optional_yield y)
 {
   ldpp_dout(this, 0) << "RahulDevParashar-RGWGetBucketEncryption::verify_permission-InsideMethod" << dendl;

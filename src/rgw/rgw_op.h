@@ -963,6 +963,7 @@ public:
   RGWGetBucketEncryption() {}
 
   int verify_permission(optional_yield y) override;
+  void pre_exec() override;
   void execute(optional_yield y) override;
   void send_response() override = 0;
   const char* name() const override { return "get_bucket_encryption"; }
