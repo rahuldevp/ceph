@@ -400,7 +400,6 @@ public:
   RGWPutBucketEncryption_ObjStore_S3() {}
   ~RGWPutBucketEncryption_ObjStore_S3() override {}
 
-  int get_params(optional_yield y) override;
   void send_response() override;
 };
 
@@ -425,6 +424,7 @@ public:
   RGWPutCORS_ObjStore_S3() {}
   ~RGWPutCORS_ObjStore_S3() override {}
 
+  int get_params(optional_yield y) override;
   void send_response() override;
 };
 
