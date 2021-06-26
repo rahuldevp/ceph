@@ -3436,8 +3436,7 @@ void RGWGetBucketEncryption_ObjStore_S3::send_response()
   dump_errno(s);
   end_header(s, this, "application/xml");
   dump_start(s);
-  ldpp_dout(this, 0) << "RahulDevParashar-RGWGetBucketEncryption_ObjStore_S3::send_response-BucketEncryptionConfig" 
-    << bucket_encryption_conf.sse_algorithm() << dendl;
+  ldpp_dout(this, 0) << "RahulDevParashar-RGWGetBucketEncryption_ObjStore_S3::send_response-BEC" << bucket_encryption_conf.sse_algorithm() << dendl;
   encode_xml("ServerSideEncryptionConfiguration", bucket_encryption_conf, s->formatter);
   rgw_flush_formatter_and_reset(s, s->formatter);
 }
