@@ -1,26 +1,24 @@
 // -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
 // vim: ts=8 sw=2 smarttab ft=cpp
 
-#ifndef CEPH_RGW_BUCKET_ENCRYPTION_H
-#define CEPH_RGW_BUCKET_ENCRYPTION_H
+#pragma once
+#include <include/types.h>
 
-#include <string>
-#include "rgw_xml.h"
+class XMLObj;
 
 class ApplyServerSideEncryptionByDefault
 {
-protected:
   string kmsMasterKeyID;
   string sseAlgorithm;
 
 public:
   ApplyServerSideEncryptionByDefault(): kmsMasterKeyID(""), sseAlgorithm("") {};
 
-  string get_kmsMasterKeyID() const {
+  string kms_master_key_id() const {
     return kmsMasterKeyID;
   }
 
-  string get_sseAlgorithm() const {
+  string sse_algorithm() const {
     return sseAlgorithm;
   }
 
@@ -52,15 +50,15 @@ protected:
 public:
   ServerSideEncryptionConfiguration(): bucketKeyEnabled(false) {};
 
-  string get_kmsMasterKeyID() const {
-    return applyServerSideEncryptionByDefault.get_kmsMasterKeyID();
+  string kms_master_key_id() const {
+    return applyServerSideEncryptionByDefault.kms_master_key_id();
   }
 
-  string get_sseAlgorithm() const {
-    return applyServerSideEncryptionByDefault.get_sseAlgorithm();
+  string sse_algorithm() const {
+    return applyServerSideEncryptionByDefault.sse_algorithm();
   }
 
-  bool get_bucketKeyEnabled() const {
+  bool bucket_key_enabled() const {
     return bucketKeyEnabled;
   }
 
@@ -93,16 +91,16 @@ protected:
 public:
   RGWBucketEncryptionConfig(): rule_exist(false) {}
 
-  string get_kmsMasterKeyID() const {
-    return rule.get_kmsMasterKeyID();
+  string kms_master_key_id() const {
+    return rule.kms_master_key_id();
   }
 
-  string get_sseAlgorithm() const {
-    return rule.get_sseAlgorithm();
+  string sse_algorithm() const {
+    return rule.sse_algorithm();
   }
 
-  bool get_bucketKeyEnabled() const {
-    return rule.get_bucketKeyEnabled();
+  bool bucket_key_enabled() const {
+    return rule.bucket_key_enabled();
   }
 
   bool has_rule() const {
@@ -131,4 +129,3 @@ public:
   void dump_xml(Formatter *f) const;
 };
 WRITE_CLASS_ENCODER(RGWBucketEncryptionConfig)
-#endif //CEPH_RGW_BUCKET_ENCRYPTION_H

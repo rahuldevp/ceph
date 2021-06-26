@@ -2504,100 +2504,6 @@ void RGWStatAccount::execute(optional_yield y)
   } while (buckets.is_truncated());
 }
 
-void RGWGetBucketEncryption::pre_exec()
-{
-  ldpp_dout(this, 0) << "RahulDevParashar-RGWGetBucketEncryption::pre_exec-InsideMethod" << dendl;
-  rgw_bucket_object_pre_exec(s);
-}
-
-int RGWGetBucketEncryption::verify_permission(optional_yield y)
-{
-  ldpp_dout(this, 0) << "RahulDevParashar-RGWGetBucketEncryption::verify_permission-InsideMethod" << dendl;
-  return verify_bucket_owner_or_policy(s, rgw::IAM::s3GetBucketEncryption);
-}
-
-void RGWGetBucketEncryption::execute(optional_yield y)
-{
-  ldpp_dout(this, 0) << "RahulDevParashar-RGWGetBucketEncryption::execute-InsideMethod" << dendl;
-}
-
-int RGWPutBucketEncryption::get_params(optional_yield y)
-{
-  ldpp_dout(this, 0) << "RahulDevParashar-RGWPutBucketEncryption::get_params-InsideMethod" << dendl;
-  const auto max_size = s->cct->_conf->rgw_max_put_param_size;
-  std::tie(op_ret, data) = read_all_input(s, max_size, false);
-  return op_ret;
-}
-
-int RGWPutBucketEncryption::verify_permission(optional_yield y)
-{
-  ldpp_dout(this, 0) << "RahulDevParashar-RGWPutBucketEncryption::verify_permission-InsideMethod" << dendl;
-  return verify_bucket_owner_or_policy(s, rgw::IAM::s3PutBucketEncryption);
-}
-
-void RGWPutBucketEncryption::execute(optional_yield y)
-{
-  ldpp_dout(this, 0) << "RahulDevParashar-RGWPutBucketEncryption::execute-InsideMethod" << dendl;
-  RGWXMLDecoder::XMLParser parser;
-  if (!parser.init()) {
-    ldpp_dout(this, 0) << "ERROR: failed to initialize parser" << dendl;
-    op_ret = -EINVAL;
-    return;
-  }
-  op_ret = get_params(y);
-  if (op_ret < 0) {
-    return;
-  }
-  ldpp_dout(this, 0) << "RahulDevParashar-BufferListData-" << data.c_str() << dendl;
-  if (!parser.parse(data.c_str(), data.length(), 1)) {
-    ldpp_dout(this, 0) << "ERROR: malformed XML" << dendl;
-    op_ret = -ERR_MALFORMED_XML;
-    return;
-  }
-
-  try {
-    RGWXMLDecoder::decode_xml("ServerSideEncryptionConfiguration", bucket_encryption_conf, &parser, true);
-  } catch (RGWXMLDecoder::err& err) {
-    ldpp_dout(this, 5) << "unexpected xml:" << err << dendl;
-    op_ret = -ERR_MALFORMED_XML;
-    return;
-  }
-
-  op_ret = store->forward_request_to_master(this, s->user.get(), nullptr, data, nullptr, s->info, y);
-  if (op_ret < 0) {
-    ldpp_dout(this, 20) << "forward_request_to_master returned ret=" << op_ret << dendl;
-    return;
-  }
-
-  op_ret = retry_raced_bucket_write(this, s->bucket.get(), [this] {
-    s->bucket->get_info().bucket_encryption_conf = bucket_encryption_conf;
-    op_ret = s->bucket->put_instance_info(this, false, real_time());
-    ldpp_dout(this, 0) << "RahulDevParashar-ReturnCodeAfterPutInstanceInfo-" << op_ret << dendl;
-    return op_ret;
-  });
-  ldpp_dout(this, 0) << "RahulDevParashar-VerifySavedData1-" 
-    << s->bucket->get_info().bucket_encryption_conf.get_sseAlgorithm() << dendl; // AES256
-  ldpp_dout(this, 0) << "RahulDevParashar-VerifySavedData1-" 
-    << s->bucket->get_info().bucket_encryption_conf.get_kmsMasterKeyID() << dendl; // test-key-rahul
-  ldpp_dout(this, 0) << "RahulDevParashar-VerifySavedData1-" 
-    << s->bucket->get_info().bucket_encryption_conf.has_rule() << dendl; // 1
-  ldpp_dout(this, 0) << "RahulDevParashar-VerifySavedData1-" 
-    << s->bucket->get_info().bucket_encryption_conf.get_bucketKeyEnabled() << dendl; // 0
-  return;
-}
-
-int RGWDeleteBucketEncryption::verify_permission(optional_yield y)
-{
-  // No separate delete permission
-  ldpp_dout(this, 0) << "RahulDevParashar-RGWDeleteBucketEncryption::verify_permission-InsideMethod" << dendl;
-  return verify_bucket_owner_or_policy(s, rgw::IAM::s3PutBucketEncryption);
-}
-
-void RGWDeleteBucketEncryption::execute(optional_yield y)
-{
-  ldpp_dout(this, 0) << "RahulDevParashar-RGWDeleteBucketEncryption::execute-InsideMethod" << dendl;
-}
-
 int RGWGetBucketVersioning::verify_permission(optional_yield y)
 {
   return verify_bucket_owner_or_policy(s, rgw::IAM::s3GetBucketVersioning);
@@ -8208,6 +8114,123 @@ void RGWDeleteBucketPublicAccessBlock::execute(optional_yield y)
   op_ret = retry_raced_bucket_write(this, s->bucket.get(), [this] {
       rgw::sal::Attrs attrs(s->bucket_attrs);
       attrs.erase(RGW_ATTR_PUBLIC_ACCESS);
+      op_ret = s->bucket->set_instance_attrs(this, attrs, s->yield);
+      return op_ret;
+    });
+}
+
+int RGWPutBucketEncryption::get_params(optional_yield y)
+{
+  ldpp_dout(this, 0) << "RahulDevParashar-RGWPutBucketEncryption::get_params-InsideMethod" << dendl;
+  const auto max_size = s->cct->_conf->rgw_max_put_param_size;
+  std::tie(op_ret, data) = read_all_input(s, max_size, false);
+  return op_ret;
+}
+
+int RGWPutBucketEncryption::verify_permission(optional_yield y)
+{
+  ldpp_dout(this, 0) << "RahulDevParashar-RGWPutBucketEncryption::verify_permission-InsideMethod" << dendl;
+  if (!verify_bucket_permission(this, s, rgw::IAM::s3PutBucketEncryption)) {
+    return -EACCES;
+  }
+  return 0;
+}
+
+void RGWPutBucketEncryption::execute(optional_yield y)
+{
+  ldpp_dout(this, 0) << "RahulDevParashar-RGWPutBucketEncryption::execute-InsideMethod" << dendl;
+  RGWXMLDecoder::XMLParser parser;
+  if (!parser.init()) {
+    ldpp_dout(this, 0) << "ERROR: failed to initialize parser" << dendl;
+    op_ret = -EINVAL;
+    return;
+  }
+  op_ret = get_params(y);
+  if (op_ret < 0) {
+    return;
+  }
+  ldpp_dout(this, 0) << "RahulDevParashar-RGWPutBucketEncryption::execute-BufferListData-" << data.c_str() << dendl;
+  if (!parser.parse(data.c_str(), data.length(), 1)) {
+    ldpp_dout(this, 0) << "ERROR: malformed XML" << dendl;
+    op_ret = -ERR_MALFORMED_XML;
+    return;
+  }
+
+  try {
+    RGWXMLDecoder::decode_xml("ServerSideEncryptionConfiguration", bucket_encryption_conf, &parser, true);
+  } catch (RGWXMLDecoder::err& err) {
+    ldpp_dout(this, 5) << "unexpected xml:" << err << dendl;
+    op_ret = -ERR_MALFORMED_XML;
+    return;
+  }
+
+  ldpp_dout(this, 0) << "RahulDevParashar-VerifySavedData1-" << bucket_encryption_conf.sse_algorithm() << dendl; // AES256
+  ldpp_dout(this, 0) << "RahulDevParashar-VerifySavedData1-" << bucket_encryption_conf.kms_master_key_id() << dendl; // test-key-rahul
+  ldpp_dout(this, 0) << "RahulDevParashar-VerifySavedData1-" << bucket_encryption_conf.has_rule() << dendl; // 1
+  ldpp_dout(this, 0) << "RahulDevParashar-VerifySavedData1-" << bucket_encryption_conf.bucket_key_enabled() << dendl; // 0
+
+  op_ret = store->forward_request_to_master(this, s->user.get(), nullptr, data, nullptr, s->info, y);
+  if (op_ret < 0) {
+    ldpp_dout(this, 20) << "forward_request_to_master returned ret=" << op_ret << dendl;
+    return;
+  }
+
+  bufferlist bl;
+  bucket_encryption_conf.encode(bl);
+  op_ret = retry_raced_bucket_write(this, s->bucket.get(), [this, &bl] {
+      rgw::sal::Attrs attrs(s->bucket_attrs);
+      attrs[RGW_ATTR_BUCKET_ENCRYPTION] = bl;
+      return s->bucket->set_instance_attrs(this, attrs, s->yield);
+    });
+}
+
+int RGWGetBucketEncryption::verify_permission(optional_yield y)
+{
+  ldpp_dout(this, 0) << "RahulDevParashar-RGWGetBucketEncryption::verify_permission-InsideMethod" << dendl;
+  if (!verify_bucket_permission(this, s, rgw::IAM::s3GetBucketEncryption)) {
+    return -EACCES;
+  }
+  return 0;
+}
+
+void RGWGetBucketEncryption::execute(optional_yield y)
+{
+  ldpp_dout(this, 0) << "RahulDevParashar-RGWGetBucketEncryption::execute-InsideMethod" << dendl;
+  auto attrs = s->bucket_attrs;
+  if (auto aiter = attrs.find(RGW_ATTR_BUCKET_ENCRYPTION);
+      aiter == attrs.end()) {
+    ldpp_dout(this, 0) << "can't find bucket IAM POLICY attr bucket_name = "
+           << s->bucket_name << dendl;
+    return;
+  } else {
+    bufferlist::const_iterator iter{&aiter->second};
+    try {
+      bucket_encryption_conf.decode(iter);
+      ldpp_dout(this, 0) << "RahulDevParashar-RGWGetBucketEncryption::execute-BucketAccessConf"
+        << bucket_encryption_conf.sse_algorithm() << dendl;
+    } catch (const buffer::error& e) {
+      ldpp_dout(this, 0) << __func__ <<  "decode bucket_encryption_conf failed" << dendl;
+      op_ret = -EIO;
+      return;
+    }
+  }
+}
+
+int RGWDeleteBucketEncryption::verify_permission(optional_yield y)
+{
+  ldpp_dout(this, 0) << "RahulDevParashar-RGWDeleteBucketEncryption::verify_permission-InsideMethod" << dendl;
+  if (!verify_bucket_permission(this, s, rgw::IAM::s3PutBucketEncryption)) {
+    return -EACCES;
+  }
+  return 0;
+}
+
+void RGWDeleteBucketEncryption::execute(optional_yield y)
+{
+  ldpp_dout(this, 0) << "RahulDevParashar-RGWDeleteBucketEncryption::execute-InsideMethod" << dendl;
+  op_ret = retry_raced_bucket_write(this, s->bucket.get(), [this] {
+      rgw::sal::Attrs attrs(s->bucket_attrs);
+      attrs.erase(RGW_ATTR_BUCKET_ENCRYPTION);
       op_ret = s->bucket->set_instance_attrs(this, attrs, s->yield);
       return op_ret;
     });

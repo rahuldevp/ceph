@@ -2,6 +2,7 @@
 // vim: ts=8 sw=2 smarttab ft=cpp
 //
 #include "rgw_bucket_encryption.h"
+#include "rgw_xml.h"
 
 void ApplyServerSideEncryptionByDefault::decode_xml(XMLObj *obj) {
   RGWXMLDecoder::decode_xml("KMSMasterKeyID", kmsMasterKeyID, obj, false);
@@ -37,7 +38,7 @@ void RGWBucketEncryptionConfig::decode_xml(XMLObj *obj) {
   if(!rule_exist) {
     throw RGWXMLDecoder::err("rule must be present in XML");
   }
-  if(rule.get_sseAlgorithm().compare("AES256") == 0) {
+  if(rule.sse_algorithm().compare("AES256") == 0) {
     sse_enabled = true;
   }
 }

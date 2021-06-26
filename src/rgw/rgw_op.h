@@ -956,49 +956,45 @@ public:
   uint32_t op_mask() override { return RGW_OP_TYPE_READ; }
 };
 
-class RGWGetBucketEncryption : public RGWOp {
-protected:
-  bool encryption_enabled{false};
-public:
-  RGWGetBucketEncryption() {}
-
-  int verify_permission(optional_yield y) override;
-  void pre_exec() override;
-  void execute(optional_yield y) override;
-  void send_response() override = 0;
-  const char* name() const override { return "get_bucket_encryption"; }
-  RGWOpType get_type() override { return RGW_OP_GET_BUCKET_ENCRYPTION; }
-  uint32_t op_mask() override { return RGW_OP_TYPE_READ; }
-};
-
 class RGWPutBucketEncryption : public RGWOp {
 protected:
-  int encryption_status;
   RGWBucketEncryptionConfig bucket_encryption_conf;
   bufferlist data;
 public:
   RGWPutBucketEncryption() = default;
   ~RGWPutBucketEncryption() {}
 
+  int get_params(optional_yield y);
   int verify_permission(optional_yield y) override;
   void execute(optional_yield y) override;
-  int get_params(optional_yield y);
-  void send_response() override = 0;
   const char* name() const override { return "put_bucket_encryption"; }
   RGWOpType get_type() override { return RGW_OP_PUT_BUCKET_ENCRYPTION; }
   uint32_t op_mask() override { return RGW_OP_TYPE_WRITE; }
 };
 
+class RGWGetBucketEncryption : public RGWOp {
+protected:
+  RGWBucketEncryptionConfig bucket_encryption_conf;
+public:
+  RGWGetBucketEncryption() {}
+
+  int get_params(optional_yield y);
+  int verify_permission(optional_yield y) override;
+  void execute(optional_yield y) override;
+  const char* name() const override { return "get_bucket_encryption"; }
+  RGWOpType get_type() override { return RGW_OP_GET_BUCKET_ENCRYPTION; }
+  uint32_t op_mask() override { return RGW_OP_TYPE_READ; }
+};
+
 class RGWDeleteBucketEncryption : public RGWOp {
 protected:
-
+  RGWBucketEncryptionConfig bucket_encryption_conf;
 public:
   RGWDeleteBucketEncryption() {}
 
+  int get_params(optional_yield y);
   int verify_permission(optional_yield y) override;
   void execute(optional_yield y) override;
-
-  void send_response() override = 0;
   const char* name() const override { return "delete_bucket_encryption"; }
   RGWOpType get_type() override { return RGW_OP_DELETE_BUCKET_ENCRYPTION; }
   uint32_t op_mask() override { return RGW_OP_TYPE_WRITE; }

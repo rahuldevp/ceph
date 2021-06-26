@@ -3417,33 +3417,9 @@ void RGWDeleteLC_ObjStore_S3::send_response()
   dump_start(s);
 }
 
-void RGWGetBucketEncryption_ObjStore_S3::send_response()
-{
-  if (op_ret) {
-    set_req_state_err(s, op_ret);
-  }
-  dump_errno(s);
-  end_header(s, this, "application/xml");
-  dump_start(s);
-
-  if (op_ret) {
-    return;
-  }
-  ldpp_dout(this, 0) << "RahulDevParashar-RGWGetBucketEncryption_ObjStore_S3::send_response" << dendl;
-  ldpp_dout(this, 0) << "RahulDevParashar-Conf-3" 
-    << s->bucket->get_info().bucket_encryption_conf.get_sseAlgorithm() << dendl;
-  ldpp_dout(this, 0) << "RahulDevParashar-Conf-4" 
-    << s->bucket->get_info().bucket_encryption_conf.get_kmsMasterKeyID() << dendl;
-  ldpp_dout(this, 0) << "RahulDevParashar-Conf-1" 
-    << s->bucket->get_info().bucket_encryption_conf.has_rule() << dendl;
-  ldpp_dout(this, 0) << "RahulDevParashar-Conf-2" 
-    << s->bucket->get_info().bucket_encryption_conf.get_bucketKeyEnabled() << dendl;
-  encode_xml("ServerSideEncryptionConfiguration", s->bucket->get_info().bucket_encryption_conf, s->formatter);
-  rgw_flush_formatter_and_reset(s, s->formatter);
-}
-
 void RGWPutBucketEncryption_ObjStore_S3::send_response()
 {
+  ldpp_dout(this, 0) << "RahulDevParashar-RGWPutBucketEncryption_ObjStore_S3::send_response-InsideMethod" << dendl;
   if (op_ret) {
     set_req_state_err(s, op_ret);
   }
@@ -3451,15 +3427,29 @@ void RGWPutBucketEncryption_ObjStore_S3::send_response()
   end_header(s);
 }
 
+void RGWGetBucketEncryption_ObjStore_S3::send_response()
+{
+  ldpp_dout(this, 0) << "RahulDevParashar-RGWGetBucketEncryption_ObjStore_S3::send_response-InsideMethod" << dendl;
+  if (op_ret) {
+    set_req_state_err(s, op_ret);
+  }
+  dump_errno(s);
+  end_header(s, this, "application/xml");
+  dump_start(s);
+  ldpp_dout(this, 0) << "RahulDevParashar-RGWGetBucketEncryption_ObjStore_S3::send_response-BucketEncryptionConfig" 
+    << bucket_encryption_conf.sse_algorithm() << dendl;
+  encode_xml("ServerSideEncryptionConfiguration", bucket_encryption_conf, s->formatter);
+  rgw_flush_formatter_and_reset(s, s->formatter);
+}
+
 void RGWDeleteBucketEncryption_ObjStore_S3::send_response()
 {
-  int r = op_ret;
-  if (!r || r == -ENOENT) {
-    r = STATUS_NO_CONTENT;
+  ldpp_dout(this, 0) << "RahulDevParashar-RGWDeleteBucketEncryption_ObjStore_S3::send_response-InsideMethod" << dendl;
+  if (op_ret) {
+    set_req_state_err(s, op_ret);
   }
-  set_req_state_err(s, r);
   dump_errno(s);
-  end_header(s, NULL);
+  end_header(s);
 }
 
 void RGWGetCORS_ObjStore_S3::send_response()
