@@ -39,6 +39,7 @@
 #include "cls/rgw/cls_rgw_types.h"
 #include "include/rados/librados.hpp"
 #include "rgw_public_access.h"
+#include "rgw_bucket_encryption.h"
 
 namespace ceph {
   class Formatter;
@@ -68,6 +69,7 @@ using ceph::crypto::MD5;
 #define RGW_ATTR_ACL		RGW_ATTR_PREFIX "acl"
 #define RGW_ATTR_LC            RGW_ATTR_PREFIX "lc"
 #define RGW_ATTR_CORS		RGW_ATTR_PREFIX "cors"
+#define RGW_ATTR_BUCKET_ENCRYPTION RGW_ATTR_PREFIX "encryption"
 #define RGW_ATTR_ETAG    	RGW_ATTR_PREFIX "etag"
 #define RGW_ATTR_BUCKETS	RGW_ATTR_PREFIX "buckets"
 #define RGW_ATTR_META_PREFIX	RGW_ATTR_PREFIX RGW_AMZ_META_PREFIX
@@ -230,6 +232,7 @@ using ceph::crypto::MD5;
 #define ERR_NO_SUCH_CORS_CONFIGURATION 2045
 #define ERR_NO_SUCH_OBJECT_LOCK_CONFIGURATION  2046
 #define ERR_INVALID_RETENTION_PERIOD 2047
+#define ERR_NO_SUCH_BUCKET_ENCRYPTION_CONFIGURATION 2048
 #define ERR_USER_SUSPENDED       2100
 #define ERR_INTERNAL_ERROR       2200
 #define ERR_NOT_IMPLEMENTED      2201
