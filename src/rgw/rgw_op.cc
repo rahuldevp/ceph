@@ -8188,8 +8188,7 @@ void RGWGetBucketEncryption::execute(optional_yield y)
   auto attrs = s->bucket_attrs;
   if (auto aiter = attrs.find(RGW_ATTR_BUCKET_ENCRYPTION);
       aiter == attrs.end()) {
-    ldpp_dout(this, 0) << "can't find bucket IAM POLICY attr bucket_name = "
-           << s->bucket_name << dendl;
+    ldpp_dout(this, 0) << "can't find bucket IAM POLICY attr bucket_name = " << s->bucket_name << dendl;
     return;
   } else {
     bufferlist::const_iterator iter{&aiter->second};
@@ -8219,4 +8218,13 @@ void RGWDeleteBucketEncryption::execute(optional_yield y)
       op_ret = s->bucket->set_instance_attrs(this, attrs, s->yield);
       return op_ret;
     });
+}
+
+void RGWDeleteBucketEncryption::send_response()
+{
+  if (op_ret) {
+    set_req_state_err(s, op_ret);
+  }
+  dump_errno(s);
+  end_header(s);
 }

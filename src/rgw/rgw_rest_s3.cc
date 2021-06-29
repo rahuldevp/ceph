@@ -3567,15 +3567,6 @@ void RGWGetBucketEncryption_ObjStore_S3::send_response()
   rgw_flush_formatter_and_reset(s, s->formatter);
 }
 
-void RGWDeleteBucketEncryption_ObjStore_S3::send_response()
-{
-  if (op_ret) {
-    set_req_state_err(s, op_ret);
-  }
-  dump_errno(s);
-  end_header(s);
-}
-
 void RGWGetRequestPayment_ObjStore_S3::send_response()
 {
   dump_errno(s);
@@ -4454,7 +4445,7 @@ RGWOp *RGWHandler_REST_Bucket_S3::op_delete()
   } else if (is_block_public_access_op()) {
     return new RGWDeleteBucketPublicAccessBlock;
   } else if (is_bucket_encryption_op()) {
-    return new RGWDeleteBucketEncryption_ObjStore_S3;
+    return new RGWDeleteBucketEncryption;
   }
 
   if (s->info.args.sub_resource_exists("website")) {

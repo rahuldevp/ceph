@@ -1776,6 +1776,7 @@ public:
   int get_params(optional_yield y);
   int verify_permission(optional_yield y) override;
   void execute(optional_yield y) override;
+  void send_response() override;
   const char* name() const override { return "delete_bucket_encryption"; }
   RGWOpType get_type() override { return RGW_OP_DELETE_BUCKET_ENCRYPTION; }
   uint32_t op_mask() override { return RGW_OP_TYPE_WRITE; }

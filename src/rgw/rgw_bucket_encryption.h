@@ -85,7 +85,6 @@ class RGWBucketEncryptionConfig
 {
 protected:
   bool rule_exist;
-  bool sse_enabled;
   ServerSideEncryptionConfiguration rule;
 
 public:

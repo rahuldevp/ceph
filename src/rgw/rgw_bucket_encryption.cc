@@ -38,9 +38,6 @@ void RGWBucketEncryptionConfig::decode_xml(XMLObj *obj) {
   if(!rule_exist) {
     throw RGWXMLDecoder::err("rule must be present in XML");
   }
-  if(rule.sse_algorithm().compare("AES256") == 0) {
-    sse_enabled = true;
-  }
 }
 
 void RGWBucketEncryptionConfig::dump_xml(Formatter *f) const {

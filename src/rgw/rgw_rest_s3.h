@@ -436,14 +436,6 @@ public:
   void send_response() override;
 };
 
-class RGWDeleteBucketEncryption_ObjStore_S3 : public RGWDeleteBucketEncryption_ObjStore {
-public:
-  RGWDeleteBucketEncryption_ObjStore_S3() {}
-  ~RGWDeleteBucketEncryption_ObjStore_S3() override {}
-
-  void send_response() override;
-};
-
 class RGWGetRequestPayment_ObjStore_S3 : public RGWGetRequestPayment {
 public:
   RGWGetRequestPayment_ObjStore_S3() {}
