@@ -3558,25 +3558,32 @@ void RGWPutBucketEncryption_ObjStore_S3::send_response()
 void RGWGetBucketEncryption_ObjStore_S3::send_response()
 {
   if (op_ret) {
-    set_req_state_err(s, op_ret);
+    if (op_ret == -ENOENT)
+      set_req_state_err(s, ERR_NO_SUCH_BUCKET_ENCRYPTION_CONFIGURATION);
+    else
+      set_req_state_err(s, op_ret);
   }
-  
+
   dump_errno(s);
   end_header(s, this, "application/xml");
   dump_start(s);
 
-  if (op_ret) {
-    return;
+  if (!op_ret) {
+    encode_xml("ServerSideEncryptionConfiguration", bucket_encryption_conf, s->formatter);
+    rgw_flush_formatter_and_reset(s, s->formatter);  
   }
-
-  encode_xml("ServerSideEncryptionConfiguration", bucket_encryption_conf, s->formatter);
-  rgw_flush_formatter_and_reset(s, s->formatter);
 }
 
 void RGWDeleteBucketEncryption_ObjStore_S3::send_response()
 {
+  int r = op_ret;
+  if (!r || r == -ENOENT) {
+    r = -ERR_NO_SUCH_BUCKET_ENCRYPTION_CONFIGURATION;
+  }
+
   if (op_ret) {
-    set_req_state_err(s, op_ret);
+    r = STATUS_NO_CONTENT;
+    set_req_state_err(s, r);
   }
   dump_errno(s);
   end_header(s);

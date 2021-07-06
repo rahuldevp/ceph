@@ -9,8 +9,6 @@ void ApplyServerSideEncryptionByDefault::decode_xml(XMLObj *obj) {
   if(kmsMasterKeyID.compare("") != 0) {
     throw RGWXMLDecoder::err("implementation for KMS is not supported yet");
   }
-  // TODO: need to set proper value for kmsMasterKeyID
-  kmsMasterKeyID = "test-key-rahul";
   RGWXMLDecoder::decode_xml("SSEAlgorithm", sseAlgorithm, obj, false);
   if (sseAlgorithm.compare("AES256") != 0) {
     throw RGWXMLDecoder::err("sse algorithm value can only be AES256");

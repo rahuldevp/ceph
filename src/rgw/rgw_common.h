@@ -69,7 +69,6 @@ using ceph::crypto::MD5;
 #define RGW_ATTR_ACL		RGW_ATTR_PREFIX "acl"
 #define RGW_ATTR_LC            RGW_ATTR_PREFIX "lc"
 #define RGW_ATTR_CORS		RGW_ATTR_PREFIX "cors"
-#define RGW_ATTR_BUCKET_ENCRYPTION RGW_ATTR_PREFIX "encryption"
 #define RGW_ATTR_ETAG    	RGW_ATTR_PREFIX "etag"
 #define RGW_ATTR_BUCKETS	RGW_ATTR_PREFIX "buckets"
 #define RGW_ATTR_META_PREFIX	RGW_ATTR_PREFIX RGW_AMZ_META_PREFIX
@@ -144,6 +143,10 @@ using ceph::crypto::MD5;
 #define RGW_ATTR_CRYPT_KEYSEL   RGW_ATTR_CRYPT_PREFIX "keysel"
 #define RGW_ATTR_CRYPT_CONTEXT  RGW_ATTR_CRYPT_PREFIX "context"
 #define RGW_ATTR_CRYPT_DATAKEY  RGW_ATTR_CRYPT_PREFIX "datakey"
+
+/* SSE-S3 Encryption Attributes */
+#define RGW_ATTR_BUCKET_ENCRYPTION RGW_ATTR_PREFIX "encryption."
+#define RGW_ATTR_BUCKET_ENCRYPTION_SSE_S3_KEY_ID RGW_ATTR_BUCKET_ENCRYPTION "sse-s3-key-id"
 
 
 #define RGW_FORMAT_PLAIN        0
