@@ -8168,22 +8168,14 @@ void RGWPutBucketEncryption::execute(optional_yield y)
 
   bufferlist key_id_bl;
   string bucket_owner_id = s->bucket->get_info().owner.id;
-  auto attrs = s->bucket_attrs;
-  if (auto aiter = attrs.find(RGW_ATTR_BUCKET_ENCRYPTION_SSE_S3_KEY_ID);
-      aiter == attrs.end()) {
-    // in case key_id is already present in attribute then do not override it.
-    key_id_bl.append(bucket_owner_id.c_str(), bucket_owner_id.size() + 1);
-  }
+  key_id_bl.append(bucket_owner_id.c_str(), bucket_owner_id.size() + 1);
 
   bufferlist bl;
   bucket_encryption_conf.encode(bl);
   op_ret = retry_raced_bucket_write(this, s->bucket.get(), [this, &bl, &key_id_bl] {
     rgw::sal::Attrs attrs(s->bucket_attrs);
     attrs[RGW_ATTR_BUCKET_ENCRYPTION] = bl;
-    if(key_id_bl.length() != 0) {
-      // this attribute will only be set once. for subsequent put calls we will skip this.
-      attrs[RGW_ATTR_BUCKET_ENCRYPTION_SSE_S3_KEY_ID] = key_id_bl;
-    }
+    attrs[RGW_ATTR_BUCKET_ENCRYPTION_SSE_S3_KEY_ID] = key_id_bl;
     return s->bucket->set_instance_attrs(this, attrs, s->yield);
   });
 }
