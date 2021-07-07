@@ -8218,27 +8218,25 @@ int RGWDeleteBucketEncryption::verify_permission(optional_yield y)
 
 void RGWDeleteBucketEncryption::execute(optional_yield y)
 {
+  bufferlist data;
+  op_ret = store->forward_request_to_master(this, s->user.get(), nullptr, data, nullptr, s->info, y);
+  if (op_ret < 0) {
+    ldpp_dout(this, 0) << "forward_request_to_master returned ret=" << op_ret << dendl;
+    return;
+  }
+
   auto attrs = s->bucket_attrs;
-  if (auto aiter = attrs.find(RGW_ATTR_BUCKET_ENCRYPTION);
-      aiter == attrs.end()) {
-    ldpp_dout(this, 0) << "can't find BUCKET ENCRYPTION attr for bucket_name = " << s->bucket_name << dendl;
+  map<string, bufferlist>::iterator aiter = s->bucket_attrs.find(RGW_ATTR_BUCKET_ENCRYPTION);
+  if (aiter == s->bucket_attrs.end()) {
+    ldpp_dout(this, 20) << "no bucket encryption attr found" << dendl;
     op_ret = -ENOENT;
     return;
-  } else {
-    bufferlist::const_iterator iter{&aiter->second};
-    try {
-      bucket_encryption_conf.decode(iter);
-    } catch (const buffer::error& e) {
-      ldpp_dout(this, 0) << __func__ <<  "decode bucket_encryption_conf failed" << dendl;
-      op_ret = -EIO;
-      return;
-    }
   }
 
   op_ret = retry_raced_bucket_write(this, s->bucket.get(), [this] {
-      rgw::sal::Attrs attrs(s->bucket_attrs);
-      attrs.erase(RGW_ATTR_BUCKET_ENCRYPTION);
-      op_ret = s->bucket->set_instance_attrs(this, attrs, s->yield);
-      return op_ret;
-    });
+    rgw::sal::Attrs attrs(s->bucket_attrs);
+    attrs.erase(RGW_ATTR_BUCKET_ENCRYPTION);
+    op_ret = s->bucket->set_instance_attrs(this, attrs, s->yield);
+    return op_ret;
+  });
 }
