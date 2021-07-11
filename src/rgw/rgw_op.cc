@@ -8170,13 +8170,13 @@ void RGWPutBucketEncryption::execute(optional_yield y)
   string bucket_owner_id = s->bucket->get_info().owner.id;
   key_id_bl.append(bucket_owner_id.c_str(), bucket_owner_id.size() + 1);
 
-  bufferlist bl;
-  bucket_encryption_conf.encode(bl);
-  op_ret = retry_raced_bucket_write(this, s->bucket.get(), [this, &bl, &key_id_bl] {
-    rgw::sal::Attrs attrs(s->bucket_attrs);
-    attrs[RGW_ATTR_BUCKET_ENCRYPTION] = bl;
-    attrs[RGW_ATTR_BUCKET_ENCRYPTION_SSE_S3_KEY_ID] = key_id_bl;
-    return s->bucket->set_instance_attrs(this, attrs, s->yield);
+  bufferlist conf_bl;
+  bucket_encryption_conf.encode(conf_bl);
+  op_ret = retry_raced_bucket_write(this, s->bucket.get(), [this, y, &conf_bl, &key_id_bl] {
+    rgw::sal::Attrs attrs = s->bucket->get_attrs();
+    attrs[RGW_ATTR_BUCKET_ENCRYPTION_POLICY] = conf_bl;
+    attrs[RGW_ATTR_BUCKET_ENCRYPTION_KEY_ID] = key_id_bl;
+    return s->bucket->set_instance_attrs(this, attrs, y);
   });
 }
 
@@ -8190,9 +8190,8 @@ int RGWGetBucketEncryption::verify_permission(optional_yield y)
 
 void RGWGetBucketEncryption::execute(optional_yield y)
 {
-  auto attrs = s->bucket_attrs;
-  if (auto aiter = attrs.find(RGW_ATTR_BUCKET_ENCRYPTION);
-      aiter == attrs.end()) {
+  auto aiter = s->bucket_attrs.find(RGW_ATTR_BUCKET_ENCRYPTION_POLICY);
+  if (aiter == s->bucket_attrs.end()) {
     ldpp_dout(this, 0) << "can't find BUCKET ENCRYPTION attr for bucket_name = " << s->bucket_name << dendl;
     op_ret = -ENOENT;
     return;
@@ -8225,19 +8224,12 @@ void RGWDeleteBucketEncryption::execute(optional_yield y)
     return;
   }
 
-  auto attrs = s->bucket_attrs;
-  map<string, bufferlist>::iterator aiter = s->bucket_attrs.find(RGW_ATTR_BUCKET_ENCRYPTION);
-  if (aiter == s->bucket_attrs.end()) {
-    ldpp_dout(this, 20) << "no bucket encryption attr found" << dendl;
-    op_ret = -ENOENT;
-    return;
-  }
-
-  op_ret = retry_raced_bucket_write(this, s->bucket.get(), [this] {
-    rgw::sal::Attrs attrs(s->bucket_attrs);
-    attrs.erase(RGW_ATTR_BUCKET_ENCRYPTION);
-    op_ret = s->bucket->set_instance_attrs(this, attrs, s->yield);
+  op_ret = retry_raced_bucket_write(this, s->bucket.get(), [this, y] {
+    rgw::sal::Attrs attrs = s->bucket->get_attrs();
+    attrs.erase(RGW_ATTR_BUCKET_ENCRYPTION_POLICY);
+    attrs.erase(RGW_ATTR_BUCKET_ENCRYPTION_KEY_ID);
+    op_ret = s->bucket->set_instance_attrs(this, attrs, y);
+    ldpp_dout(this, 0) << "RahulDevParashar" << op_ret << dendl;
     return op_ret;
   });
 }
-

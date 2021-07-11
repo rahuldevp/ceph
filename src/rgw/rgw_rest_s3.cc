@@ -3578,10 +3578,6 @@ void RGWDeleteBucketEncryption_ObjStore_S3::send_response()
 {
   if (op_ret == 0) {
     op_ret = STATUS_NO_CONTENT;
-  } else {
-    if (op_ret == -ENOENT) {
-      op_ret = ERR_NO_SUCH_BUCKET_ENCRYPTION_CONFIGURATION;
-    }
   }
 
   set_req_state_err(s, op_ret);

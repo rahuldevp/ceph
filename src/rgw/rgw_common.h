@@ -39,7 +39,6 @@
 #include "cls/rgw/cls_rgw_types.h"
 #include "include/rados/librados.hpp"
 #include "rgw_public_access.h"
-#include "rgw_bucket_encryption.h"
 
 namespace ceph {
   class Formatter;
@@ -145,8 +144,9 @@ using ceph::crypto::MD5;
 #define RGW_ATTR_CRYPT_DATAKEY  RGW_ATTR_CRYPT_PREFIX "datakey"
 
 /* SSE-S3 Encryption Attributes */
-#define RGW_ATTR_BUCKET_ENCRYPTION RGW_ATTR_PREFIX "encryption."
-#define RGW_ATTR_BUCKET_ENCRYPTION_SSE_S3_KEY_ID RGW_ATTR_BUCKET_ENCRYPTION "sse-s3-key-id"
+#define RGW_ATTR_BUCKET_ENCRYPTION_PREFIX RGW_ATTR_PREFIX "sse-s3."
+#define RGW_ATTR_BUCKET_ENCRYPTION_POLICY RGW_ATTR_BUCKET_ENCRYPTION_PREFIX "policy"
+#define RGW_ATTR_BUCKET_ENCRYPTION_KEY_ID RGW_ATTR_BUCKET_ENCRYPTION_PREFIX "key-id"
 
 
 #define RGW_FORMAT_PLAIN        0
