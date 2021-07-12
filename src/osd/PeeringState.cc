@@ -42,7 +42,7 @@ BufferedRecoveryMessages::BufferedRecoveryMessages(PeeringCtx &ctx)
 void BufferedRecoveryMessages::send_notify(int to, const pg_notify_t &n)
 {
   spg_t pgid(n.info.pgid.pgid, n.to);
-  send_osd_message(to, make_message<MOSDPGNotify2>(pgid, n));
+  send_osd_message(to, TOPNSPC::make_message<MOSDPGNotify2>(pgid, n));
 }
 
 void BufferedRecoveryMessages::send_query(
@@ -50,7 +50,7 @@ void BufferedRecoveryMessages::send_query(
   spg_t to_spgid,
   const pg_query_t &q)
 {
-  send_osd_message(to, make_message<MOSDPGQuery2>(to_spgid, q));
+  send_osd_message(to, TOPNSPC::make_message<MOSDPGQuery2>(to_spgid, q));
 }
 
 void BufferedRecoveryMessages::send_info(
@@ -64,7 +64,7 @@ void BufferedRecoveryMessages::send_info(
 {
   send_osd_message(
     to,
-    make_message<MOSDPGInfo2>(
+    TOPNSPC::make_message<MOSDPGInfo2>(
       to_spgid,
       info,
       cur_epoch,
@@ -3780,6 +3780,8 @@ std::optional<pg_stat_t> PeeringState::prepare_stats_for_publish(
   const object_stat_collection_t &unstable_stats)
 {
   if (info.stats.stats.sum.num_scrub_errors) {
+    psdout(10) << __func__ << " inconsistent due to " <<
+      info.stats.stats.sum.num_scrub_errors << " scrub errors" << dendl;
     state_set(PG_STATE_INCONSISTENT);
   } else {
     state_clear(PG_STATE_INCONSISTENT);

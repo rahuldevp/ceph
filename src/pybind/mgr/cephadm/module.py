@@ -1463,6 +1463,22 @@ Then run the following:
 
         :param host: host name
         """
+        # Verify if it is possible to remove the host safely
+        daemons = self.cache.get_daemons_by_host(host)
+        if daemons:
+            self.log.warning(f"Blocked {host} removal. Daemons running: {daemons}")
+
+            daemons_table = ""
+            daemons_table += "{:<20} {:<15}\n".format("type", "id")
+            daemons_table += "{:<20} {:<15}\n".format("-" * 20, "-" * 15)
+            for d in daemons:
+                daemons_table += "{:<20} {:<15}\n".format(d.daemon_type, d.daemon_id)
+
+            return "Not allowed to remove %s from cluster. " \
+                "The following daemons are running in the host:" \
+                "\n%s\nPlease run 'ceph orch host drain %s' to remove daemons from host" % (
+                    host, daemons_table, host)
+
         self.inventory.rm_host(host)
         self.cache.rm_host(host)
         self._reset_con(host)
@@ -1747,8 +1763,7 @@ Then run the following:
 
                 if (
                     service_type
-                    and service_type != n
-                    and not dd.daemon_type.startswith(n + '.')
+                    and service_type != daemon_type_to_service(dd.daemon_type)
                 ):
                     continue
                 if service_name and service_name != n:
@@ -1939,10 +1954,26 @@ Then run the following:
             if self.spec_store[service_name].spec.service_type in ('mon', 'mgr'):
                 return f'Unable to remove {service_name} service.\n' \
                        f'Note, you might want to mark the {service_name} service as "unmanaged"'
-        found = self.spec_store.rm(service_name)
+
+        # Report list of affected OSDs
+        osds_msg = {}
+        if service_name.startswith('osd.'):
+            for h, dm in self.cache.get_daemons_with_volatile_status():
+                osds_to_remove = []
+                for name, dd in dm.items():
+                    if dd.daemon_type == 'osd' and (dd.service_name() == service_name or not dd.osdspec_affinity):
+                        osds_to_remove.append(str(dd.daemon_id))
+                if osds_to_remove:
+                    osds_msg[h] = osds_to_remove
+
+        found = self.spec_store.rm(service_name) or osds_msg
         if found:
             self._kick_serve_loop()
-            return 'Removed service %s' % service_name
+            if osds_msg:
+                return f'The service {service_name} will be deleted once the following OSDs: {osds_msg} ' \
+                       f'will be deleted manually.'
+            else:
+                return f'Removed service {service_name}'
         else:
             # must be idempotent: still a success.
             try:
@@ -2549,3 +2580,25 @@ Then run the following:
         The CLI call to retrieve an osd removal report
         """
         return self.to_remove_osds.all_osds()
+
+    @handle_orch_error
+    def drain_host(self, hostname):
+        # type: (str) -> str
+        """
+        Drain all daemons from a host.
+        :param host: host name
+        """
+        self.add_host_label(hostname, '_no_schedule')
+
+        daemons: List[orchestrator.DaemonDescription] = self.cache.get_daemons_by_host(hostname)
+
+        osds_to_remove = [d.daemon_id for d in daemons if d.daemon_type == 'osd']
+        self.remove_osds(osds_to_remove)
+
+        daemons_table = ""
+        daemons_table += "{:<20} {:<15}\n".format("type", "id")
+        daemons_table += "{:<20} {:<15}\n".format("-" * 20, "-" * 15)
+        for d in daemons:
+            daemons_table += "{:<20} {:<15}\n".format(d.daemon_type, d.daemon_id)
+
+        return "Scheduled to remove the following daemons from host '{}'\n{}".format(hostname, daemons_table)
